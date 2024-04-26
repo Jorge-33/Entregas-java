@@ -21,6 +21,7 @@ public class DataFrameImpl<E extends Comparable<E>> {
     private final LinkedHashMap<String, List<String>> df;
 
     public DataFrameImpl(LinkedHashMap<String, List<String>> data) {
+    	//borrar para q pueda imprimir vacio
         if (data.isEmpty()) {
             throw new IllegalArgumentException("El argumento está vacío");
         }
@@ -403,5 +404,142 @@ public class DataFrameImpl<E extends Comparable<E>> {
 
         return sb.toString();
     }
+    
+    /// COMIENZO DE LA DEFENSA
+   
+    //dataframe vacio
+    public static DataFrameImpl emptyDataFrame() {
+        return new DataFrameImpl(new LinkedHashMap<>());
+    }
+    //dataframe vacio a partir de otro solo imprime columnas
+    public DataFrameImpl emptyDataFrameFromDataFrame(DataFrameImpl df) {
+        // Obtener los nombres de las columnas del DataFrame existente
+        List<String> columnNames = df.getColumnNames();
+        
+        // Crear un DataFrame vacío con las mismas columnas
+        LinkedHashMap<String, List<String>> data = new LinkedHashMap<>();
+        for (String columnName : columnNames) {
+            data.put(columnName, new ArrayList<>());
+        }
+        return new DataFrameImpl(data);
+    }
+    // añade
+    public void addDataFrame(DataFrameImpl df2) {
+        // Obtener los nombres de las columnas del DataFrame actual y del DataFrame a añadir
+        List<String> columnNames = getColumnNames();
+        List<String> columnNames2 = df2.getColumnNames();
+        
+        // Verificar si los nombres de las columnas son iguales en ambos DataFrames
+        if (!columnNames.equals(columnNames2)) {
+            throw new IllegalArgumentException("Los DataFrames tienen diferentes columnas y no se pueden añadir.");
+        }
+        
+        // Añadir las filas del DataFrame df2 al DataFrame actual
+        List<List<String>> rows = df2.getRows();
+        for (List<String> row : rows) {
+            for (int i = 0; i < columnNames.size(); i++) {
+                String columnName = columnNames.get(i);
+                String cellValue = row.get(i);
+                // Añadir el valor de la celda a la columna correspondiente
+                getColumn(columnName).add(cellValue);
+            }}}
+        
+        //mismo pero cambiado
+        /*public DataFrameImpl addDataFrame(DataFrameImpl df2) {
+            // Obtener las columnas de ambos DataFrames
+            List<String> columnNames1 = getColumnNames();
+            List<String> columnNames2 = df2.getColumnNames();
+            
+            // Crear una lista con todas las columnas
+            List<String> allColumnNames = new ArrayList<>(columnNames1);
+            allColumnNames.addAll(columnNames2);
+            
+            // Verificar si hay columnas comunes
+            Set<String> commonColumns = new HashSet<>(columnNames1);
+            commonColumns.retainAll(columnNames2);
+            if (!commonColumns.isEmpty()) {
+                throw new IllegalArgumentException("Hay columnas comunes en los DataFrames: " + commonColumns);
+            }
+            
+            // Crear un nuevo DataFrame con todas las columnas
+            LinkedHashMap<String, List<String>> newData = new LinkedHashMap<>();
+            for (String columnName : allColumnNames) {
+                List<String> values = new ArrayList<>();
+                values.addAll(getColumn(columnName));
+                values.addAll(df2.getColumn(columnName));
+                newData.put(columnName, values);
+            }
+            
+            return new DataFrameImpl(newData);
+        }*/
+        //otro
+        public DataFrameImpl removeColumnByIndex(int index) {
+            if (index < 0 || index >= getColumnNumber()) {
+                throw new IllegalArgumentException("Índice de columna inválido: " + index);
+            }
+            
+            String columnName = getColumnNames().get(index);
+            LinkedHashMap<String, List<String>> newData = new LinkedHashMap<>(df);
+            newData.remove(columnName);
+            
+            return new DataFrameImpl(newData);
+        }
+        //divide por las columnas 
+        public List<DataFrameImpl> splitDataFrame(int c1, int c2) {
+            // Verificar que los índices sean válidos
+            if (c1 < 0 || c1 >= getColumnNumber() || c2 < 0 || c2 >= getColumnNumber()) {
+                throw new IllegalArgumentException("Los índices de división están fuera de rango.");
+            }
+            
+            // Obtener las columnas del DataFrame
+            List<String> columnNames = getColumnNames();
+            
+            // Verificar que los índices de división sean coherentes
+            if (c1 >= c2) {
+                throw new IllegalArgumentException("El índice de inicio debe ser menor que el índice de finalización.");
+            }
+            
+            // Dividir las columnas en las partes indicadas por los índices
+            List<String> columnNames1 = columnNames.subList(0, c1);
+            List<String> columnNames2 = columnNames.subList(c1, c2 + 1);
+            List<String> columnNames3 = columnNames.subList(c2 + 1, getColumnNumber());
+            
+            // Crear DataFrames para cada parte
+            DataFrameImpl df1 = filterColumns(columnNames1);
+            DataFrameImpl df2 = filterColumns(columnNames2);
+            DataFrameImpl df3 = filterColumns(columnNames3);
+            
+            return Arrays.asList(df1, df2, df3);
+        }
+
+        private DataFrameImpl filterColumns(List<String> columnNames) {
+            LinkedHashMap<String, List<String>> newData = new LinkedHashMap<>();
+            for (String columnName : columnNames) {
+                newData.put(columnName, getColumn(columnName));
+            }
+            return new DataFrameImpl(newData);
+        }
+///divide por filas
+        public List<DataFrameImpl> splitDataFrameByRows(int c1, int c2) {
+            if (c1 < 0 || c2 < 0 || c1 >= getRowNumber() || c2 >= getRowNumber() || c1 >= c2) {
+                throw new IllegalArgumentException("Los índices proporcionados están fuera de rango o no son válidos");
+            }
+            List<DataFrameImpl> result = new ArrayList<>();
+            DataFrameImpl firstPart = slice(0, c1);
+            DataFrameImpl secondPart = slice(c1 + 1, c2 + 1); // Agregar 1 a c2 para incluirlo en la segunda parte
+            DataFrameImpl thirdPart = slice(c2 + 1, getRowNumber()); // Agregar 1 a c2 para iniciar desde la fila siguiente
+            if (firstPart.getRowNumber() > 0) {
+                result.add(firstPart);
+            }
+            if (secondPart.getRowNumber() > 0) {
+                result.add(secondPart);
+            }
+            if (thirdPart.getRowNumber() > 0) {
+                result.add(thirdPart);
+            }
+            return result;
+        }
+
+
 
 }

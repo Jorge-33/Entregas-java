@@ -193,7 +193,15 @@ public class Test {
 	        System.out.println("\n");
 
 	        
+	        ////DEFENSA
+	        DataFrameImpl sinColumnaNombre6 = df3.emptyDataFrameFromDataFrame(df3);
+	        System.out.println(sinColumnaNombre6);
 	        
+	        DataFrameImpl sinCOlumna3 = df3.removeColumnByIndex(2);
+	        System.out.println(sinCOlumna3);
+	        
+	        List<DataFrameImpl> sinCOlumnaNombre7 = df2.splitDataFrameByRows(3,7);
+	        System.out.println(sinCOlumnaNombre7);
                         
         } catch (IOException e) {
             e.printStackTrace();
